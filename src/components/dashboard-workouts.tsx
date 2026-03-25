@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { format } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -106,7 +107,9 @@ export default function DashboardWorkouts({
               {loading ? 'Loading...' : `${workouts.length} workout${workouts.length !== 1 ? 's' : ''} logged`}
             </p>
           </div>
-          <Button>+ New Workout</Button>
+          <Button asChild>
+            <Link href="/dashboard/workout/new">+ New Workout</Link>
+          </Button>
         </div>
 
         {/* Workouts Grid */}

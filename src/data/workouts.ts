@@ -4,6 +4,31 @@ import { db } from '@/db';
 import { workouts, workoutExercises, exercises, sets } from '@/db/schema';
 import { eq, and, gte, lt } from 'drizzle-orm';
 
+export interface CreateWorkoutInput {
+  name: string;
+  notes?: string;
+  startedAt: Date;
+}
+
+export async function createWorkout(userId: string, input: CreateWorkoutInput) {
+  try {
+    const result = await db
+      .insert(workouts)
+      .values({
+        userId,
+        name: input.name,
+        notes: input.notes,
+        startedAt: input.startedAt,
+      })
+      .returning();
+
+    return result[0];
+  } catch (error) {
+    console.error('Error creating workout:', error);
+    throw new Error('Failed to create workout');
+  }
+}
+
 export async function getWorkoutsByDate(userId: string, dateString: string) {
   // Parse the date string (yyyy-MM-dd)
   const [year, month, day] = dateString.split('-').map(Number);

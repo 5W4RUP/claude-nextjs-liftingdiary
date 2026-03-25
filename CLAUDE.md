@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Current documentation files:
 - **`docs/ui.md`** - UI component standards, shadcn component usage, and date formatting guidelines
+- **`docs/data-mutations.md`** - Data mutation patterns, server actions, Zod validation, and Drizzle ORM integration
 - Additional docs will be added as the project grows
 
 When implementing features:
