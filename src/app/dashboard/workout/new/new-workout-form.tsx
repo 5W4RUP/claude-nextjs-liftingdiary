@@ -90,6 +90,7 @@ export function NewWorkoutForm() {
                 name="date"
                 type="date"
                 defaultValue={defaultDate}
+                max={defaultDate}
                 required
                 disabled={loading}
               />

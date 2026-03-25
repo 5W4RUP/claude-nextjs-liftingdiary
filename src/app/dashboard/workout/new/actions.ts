@@ -2,13 +2,25 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
+import { format } from 'date-fns';
 import { createWorkout } from '@/data/workouts';
 
 const CreateWorkoutSchema = z.object({
   name: z.string().min(1, 'Workout name is required').max(100),
   notes: z.string().max(500).optional(),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'),
-  time: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time'),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format')
+    .refine(
+      (date) => {
+        const workoutDate = new Date(date + 'T00:00:00');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return workoutDate <= today;
+      },
+      'Workout date cannot be in the future'
+    ),
+  time: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format'),
 });
 
 type CreateWorkoutInput = z.infer<typeof CreateWorkoutSchema>;
