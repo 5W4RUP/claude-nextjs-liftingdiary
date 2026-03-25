@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -62,12 +62,15 @@ export default function DashboardWorkouts({
   const [stats, setStats] = useState<Stats>(initialStats);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const previousDateRef = useRef<string>(selectedDate);
 
   // Refetch workouts when the date param changes
   useEffect(() => {
     const currentDate = searchParams.get('date') || selectedDate;
 
-    if (currentDate !== selectedDate) {
+    // Only refetch if the date actually changed
+    if (currentDate !== previousDateRef.current) {
+      previousDateRef.current = currentDate;
       setLoading(true);
       setError(null);
 
