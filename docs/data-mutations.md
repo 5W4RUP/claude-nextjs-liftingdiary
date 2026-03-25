@@ -214,6 +214,75 @@ Every server action MUST:
 5. Call data helper functions
 6. Return typed results
 7. Handle errors and return error messages
+8. **DO NOT use `redirect()`** — all navigations must be handled client-side
+
+### ⚠️ CRITICAL: No redirect() in Server Actions
+
+Server actions MUST NOT call `redirect()`. All navigation MUST be done client-side after the server action returns.
+
+**Why?** Server actions are meant to return data, not perform side effects like navigation. Client-side navigation allows the client component to handle the response and make navigation decisions.
+
+#### ✅ CORRECT - Client-side redirect
+
+```typescript
+// src/app/dashboard/actions.ts
+export async function createWorkoutAction(input: CreateWorkoutInput) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
+    const validatedInput = CreateWorkoutSchema.parse(input);
+    const workout = await createWorkout(userId, validatedInput);
+
+    // ✅ Return data, do NOT redirect
+    return {
+      success: true,
+      data: workout,
+      date: format(validatedInput.startedAt, 'yyyy-MM-dd'),
+    };
+  } catch (error) {
+    return { success: false, error: 'Failed to create workout' };
+  }
+}
+```
+
+```typescript
+// src/components/create-workout-form.tsx
+'use client';
+import { useRouter } from 'next/navigation';
+
+export function CreateWorkoutForm() {
+  const router = useRouter();
+
+  const handleSubmit = async (formData: FormData) => {
+    // ✅ Call server action
+    const result = await createWorkoutAction(input);
+
+    if (!result.success) {
+      setError(result.error);
+      return;
+    }
+
+    // ✅ Handle redirect client-side
+    router.push(`/dashboard?date=${result.date}`);
+  };
+}
+```
+
+#### ❌ WRONG - redirect() in server action
+
+```typescript
+// ❌ WRONG - DO NOT USE
+export async function createWorkoutAction(input: CreateWorkoutInput) {
+  const validatedInput = CreateWorkoutSchema.parse(input);
+  const workout = await createWorkout(userId, validatedInput);
+
+  // ❌ NEVER call redirect() in server actions
+  redirect(`/dashboard?date=${format(validatedInput.startedAt, 'yyyy-MM-dd')}`);
+}
+```
 
 ### ✅ CORRECT Pattern
 
