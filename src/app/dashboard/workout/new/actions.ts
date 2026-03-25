@@ -1,10 +1,8 @@
 'use server';
 
 import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { createWorkout } from '@/data/workouts';
-import { format } from 'date-fns';
 
 const CreateWorkoutSchema = z.object({
   name: z.string().min(1, 'Workout name is required').max(100),
@@ -19,7 +17,10 @@ export async function createWorkoutAction(input: CreateWorkoutInput) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      throw new Error('Unauthorized');
+      return {
+        success: false,
+        error: 'Unauthorized',
+      };
     }
 
     const validated = CreateWorkoutSchema.parse(input);
@@ -31,15 +32,23 @@ export async function createWorkoutAction(input: CreateWorkoutInput) {
       startedAt,
     });
 
-    redirect(`/dashboard?date=${validated.date}`);
+    return {
+      success: true,
+      error: null,
+      date: validated.date,
+    };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new Error(error.errors[0].message);
+      return {
+        success: false,
+        error: error.errors[0].message,
+      };
     }
-    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
-      throw error; // Re-throw redirect errors
-    }
+
     console.error('Error creating workout:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to create workout');
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create workout',
+    };
   }
 }

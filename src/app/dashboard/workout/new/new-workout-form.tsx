@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { createWorkoutAction } from './actions';
@@ -10,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function NewWorkoutForm() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +32,16 @@ export function NewWorkoutForm() {
         time: formData.get('time') as string,
       };
 
-      await createWorkoutAction(input);
+      const result = await createWorkoutAction(input);
+
+      if (!result.success) {
+        setError(result.error);
+        setLoading(false);
+        return;
+      }
+
+      // Redirect client-side to dashboard with the created workout's date
+      router.push(`/dashboard?date=${result.date}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create workout';
       setError(message);
